@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Polar - Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+    }
+    header {
+      background: #023047;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+    .dashboard {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 30px;
+    }
+    h3 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .card {
+      flex: 1;
+      background: #fb8500;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+    }
+    canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
+    #map {
+      width: 100%;
+      height: 300px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>Solar Polar Dashboard</header>
+
+  <div class="dashboard">
+    <div class="section">
+      <h3>Live Solar Data</h3>
+      <div class="stats">
+        <div class="card">
+          <div>Light Intensity</div>
+          <div id="lightIntensity">-- W/m²</div>
+        </div>
+        <div class="card">
+          <div>Energy Today</div>
+          <div id="energyToday">-- kWh</div>
+        </div>
+        <div class="card">
+          <div>Battery Efficiency</div>
+          <div id="batteryEff">-- %</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Live Solar Chart</h3>
+      <canvas id="solarChart"></canvas>
+    </div>
+
+    <div class="section">
+      <h3>Your Location & Sunlight Status</h3>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Chart Setup
+    const ctx = document.getElementById('solarChart').getContext('2d');
+    const chartData = {
+      labels: [],
+      datasets: [{
+        label: 'Solar Intensity (W/m²)',
+        backgroundColor: '#219ebc',
+        borderColor: '#023047',
+        data: [],
+        fill: true
+      }]
+    };
+
+    const solarChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        scales: {
+          x: { display: true },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Update data every 5 seconds
+    setInterval(() => {
+      const intensity = Math.floor(400 + Math.random() * 300);
+      const energy = (Math.random() * 5).toFixed(2);
+      const battery = (80 + Math.random() * 20).toFixed(1);
+
+      const now = new Date().toLocaleTimeString();
+      if (chartData.labels.length > 10) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+      }
+      chartData.labels.push(now);
+      chartData.datasets[0].data.push(intensity);
+      solarChart.update();
+
+      document.getElementById('lightIntensity').textContent = intensity + ' W/m²';
+      document.getElementById('energyToday').textContent = energy + ' kWh';
+      document.getElementById('batteryEff').textContent = battery + ' %';
+    }, 5000);
+
+    // Map
+    function initMap(lat, lon) {
+      const map = L.map('map').setView([lat, lon], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([lat, lon]).addTo(map).bindPopup("You are here!").openPopup();
+    }
+
+    // Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        initMap(lat, lon);
+      }, () => {
+        alert("Location access denied.");
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar AI Insights</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #023047;
+    }
+    .section {
+      margin: 20px 0;
+    }
+    .alert {
+      background: #ffcccc;
+      color: #900;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
+    .suggestions {
+      background: #e0f7fa;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>AI Solar Insights</h2>
+
+  <div class="section">
+    <div id="alert" class="alert">⚠️ Energy levels are below the safe threshold!</div>
+  </div>
+
+  <div class="section">
+    <h3>Sunlight Comparison: Today vs Average</h3>
+    <canvas id="compareChart"></canvas>
+  </div>
+
+  <div class="section">
+    <h3>Predicted Solar Energy for Tomorrow (kWh)</h3>
+    <div id="prediction">Calculating...</div>
+  </div>
+
+  <div class="section suggestions">
+    <h4>Optimization Tips</h4>
+    <ul id="tips">
+      <li>Ensure panels face true south (in Northern Hemisphere).</li>
+      <li>Keep panels clean and unobstructed.</li>
+      <li>Use solar energy during peak daylight hours.</li>
+    </ul>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Simulated values - in real use, pull from weather + solar APIs
+  const sunlightToday = 4.3; // kWh today
+  const averageSunlight = 5.0; // average for the location
+  const predictedTomorrow = 4.6; // AI prediction
+  const threshold = 3.0; // minimum safe energy level
+
+  document.getElementById('prediction').textContent = `${predictedTomorrow} kWh expected tomorrow`;
+
+  if (sunlightToday < threshold) {
+    document.getElementById('alert').style.display = 'block';
+  }
+
+  // Comparison Chart
+  const compareChartCtx = document.getElementById('compareChart').getContext('2d');
+  new Chart(compareChartCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Today', 'Average'],
+      datasets: [{
+        label: 'Solar Energy (kWh)',
+        data: [sunlightToday, averageSunlight],
+        backgroundColor: ['#ffb703', '#219ebc']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
